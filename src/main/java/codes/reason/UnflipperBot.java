@@ -14,7 +14,7 @@ import java.util.regex.Pattern;
 // endure from evil people.
 public class UnflipperBot {
 
-    private static final String FLIP_STRING = "(╯°□°）╯︵ ┻━┻";
+    private static final String FLIP_STRING = "┻━┻";
     private static final String UNFLIP_STRING = "┬─┬ ノ( ゜-゜ノ)";
 
     public static void main(String[] args) {
