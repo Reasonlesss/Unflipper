@@ -2,7 +2,9 @@ package codes.reason;
 
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
+import net.dv8tion.jda.api.events.ReadyEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
+import net.dv8tion.jda.api.events.message.MessageUpdateEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.requests.GatewayIntent;
 import org.jetbrains.annotations.NotNull;
@@ -14,7 +16,9 @@ import java.util.regex.Pattern;
 // endure from evil people.
 public class UnflipperBot {
 
-    private static final String FLIP_STRING = "┻━┻";
+    private static final String[] FLIP_VARIANTS = new String[] {
+            "┻", "┸"
+    };
     private static final String UNFLIP_STRING = "┬─┬ ノ( ゜-゜ノ)";
 
     public static void main(String[] args) {
@@ -33,10 +37,23 @@ public class UnflipperBot {
                 .enableIntents(GatewayIntent.MESSAGE_CONTENT)
                 .build();
 
+
         // Listen for potential abuse and correct things :)
         jda.addEventListener(new ListenerAdapter() {
+
             @Override
             public void onMessageReceived(@NotNull MessageReceivedEvent event) {
+                final String message = event.getMessage().getContentRaw();
+                int flips = isFlipped(message);
+                if (flips > 0) {
+                    String repeated = ("  " + UNFLIP_STRING).repeat(flips).substring(1);
+                    event.getMessage().reply(repeated).queue();
+                }
+
+            }
+
+            @Override
+            public void onMessageUpdate(@NotNull MessageUpdateEvent event) {
                 final String message = event.getMessage().getContentRaw();
                 int flips = isFlipped(message);
                 if (flips > 0) {
@@ -57,18 +74,16 @@ public class UnflipperBot {
         boolean flip = true;
         int totalOccurrences = 0;
 
-        while (flip) {
-            for (char c : FLIP_STRING.toCharArray()) {
-                String charAsString = String.valueOf(c);
-                if (content.contains(charAsString)) {
-                    content = content.replaceFirst(Pattern.quote(charAsString), "");
-                }else {
-                    flip = false;
-                }
+        for (String variant : FLIP_VARIANTS) {
+            int variantFlips = 0;
+            while (content.contains(variant)) {
+                content = content.replaceFirst(Pattern.quote(variant), "");
+                variantFlips++;
             }
-            if (flip) totalOccurrences++;
+            totalOccurrences += variantFlips;
         }
-        return totalOccurrences;
+
+        return totalOccurrences / 2;
     }
 
 }
